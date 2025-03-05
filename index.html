@@ -80,6 +80,13 @@
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
     }
 
+    .country-item .sn {
+      font-size: 16px;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-right: 15px;
+    }
+
     .country-item .flag {
       width: 40px;
       height: 40px;
@@ -146,6 +153,11 @@
         text-align: center;
       }
 
+      .country-item .sn {
+        margin-right: 0;
+        margin-bottom: 10px;
+      }
+
       .country-item .flag {
         margin-right: 0;
         margin-bottom: 10px;
@@ -203,10 +215,11 @@
     // Function to populate the list with country items
     function populateList(data) {
       countriesList.innerHTML = ""; // Clear the list
-      data.forEach((country) => {
+      data.forEach((country, index) => {
         const listItem = document.createElement("li");
         listItem.className = "country-item";
         listItem.innerHTML = `
+          <div class="sn">${index + 1}.</div>
           <img src="${country.flags.png}" alt="${country.name.common}" class="flag">
           <div class="details">
             <div class="name">${country.name.common}</div>
