@@ -25,6 +25,9 @@
       color: #fff;
       padding: 20px;
       box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+      position: fixed; /* Make sidebar fixed */
+      height: 100vh; /* Full height */
+      overflow-y: auto; /* Enable scrolling if content overflows */
     }
 
     .sidebar h2 {
@@ -52,6 +55,7 @@
       flex: 1;
       padding: 20px;
       background-color: #fff;
+      margin-left: 300px; /* Offset for the fixed sidebar */
     }
 
     .country-list {
@@ -133,7 +137,7 @@
         type="text"
         id="search-input"
         class="search-input"
-        placeholder="Search for a country, capital, code, or phone..."
+        placeholder="Search for a country, capital, code, phone, or currency..."
       />
     </div>
   </div>
@@ -199,9 +203,15 @@
       return `${idd.root}${idd.suffixes ? idd.suffixes[0] : ""}`;
     }
 
-    // Function to format population with commas
+    // Function to format population in thousands or millions
     function formatPopulation(population) {
-      return population ? population.toLocaleString() : "N/A";
+      if (!population) return "N/A";
+      if (population >= 1_000_000) {
+        return `${(population / 1_000_000).toFixed(1)}M`;
+      } else if (population >= 1_000) {
+        return `${(population / 1_000).toFixed(1)}K`;
+      }
+      return population.toLocaleString();
     }
 
     // Function to get currency information
@@ -215,13 +225,13 @@
     searchInput.addEventListener("input", (event) => {
       const searchTerm = event.target.value.toLowerCase(); // Get the search term
 
-      // Filter data based on country name, capital, country code, or phone code
+      // Filter data based on country name, capital, country code, phone code, population, or currency
       const filteredData = countriesData.filter((country) => {
         const countryName = country.name.common.toLowerCase();
         const capital = country.capital ? country.capital[0].toLowerCase() : "";
         const countryCode = country.cca2.toLowerCase();
         const phoneCode = getPhoneCode(country.idd).toLowerCase();
-        const population = country.population ? country.population.toString() : "";
+        const population = formatPopulation(country.population).toLowerCase();
         const currency = getCurrency(country.currencies).toLowerCase();
 
         return (
