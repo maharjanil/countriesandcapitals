@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Countries and Their Capitals</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Custom CSS -->
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+
+    h1 {
+      color: #333;
+      margin-top: 20px;
+    }
+
+    .table {
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      margin-top: 20px;
+    }
+
+    .search-container {
+      margin-bottom: 20px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container mt-5">
+    <h1 class="text-center mb-4">Countries and Their Capitals</h1>
+    <!-- Search Input -->
+    <div class="search-container">
+      <input
+        type="text"
+        id="search-input"
+        class="search-input"
+        placeholder="Search for a country, capital, country code, or phone code..."
+      />
+    </div>
+    <!-- Table -->
+    <table class="table table-bordered table-striped">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Country Code</th>
+          <th>Country</th>
+          <th>Capital</th>
+          <th>Phone Code</th>
+        </tr>
+      </thead>
+      <tbody id="countries-table">
+        <!-- Countries and capitals will be dynamically inserted here -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Bootstrap 5 JS and dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+  <!-- Custom JS -->
+  <script>
+    const countriesTable = document.getElementById("countries-table");
+    const searchInput = document.getElementById("search-input");
+
+    let countriesData = []; // To store the fetched data
+
+    // Fetch data from the REST Countries API
+    fetch("https://restcountries.com/v3.1/all")
+      .then((response) => response.json())
+      .then((data) => {
+        // Sort countries alphabetically by name
+        data.sort((a, b) => a.name.common.localeCompare(b.name.common));
+
+        // Store the sorted data
+        countriesData = data;
+
+        // Populate the table with sorted data
+        populateTable(countriesData);
+      })
+      .catch((error) => console.error("Error fetching data:", error));
+
+    // Function to populate the table
+    function populateTable(data) {
+      countriesTable.innerHTML = ""; // Clear the table
+      data.forEach((country, index) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${index + 1}</td>
+          <td>${country.cca2}</td>
+          <td>${country.name.common}</td>
+          <td>${country.capital ? country.capital[0] : "N/A"}</td>
+          <td>${getPhoneCode(country.idd)}</td>
+        `;
+        countriesTable.appendChild(row);
+      });
+    }
+
+    // Function to extract phone code from the idd object
+    function getPhoneCode(idd) {
+      if (!idd || !idd.root) return "N/A";
+      return `${idd.root}${idd.suffixes ? idd.suffixes[0] : ""}`;
+    }
+
+    // Add event listener for search input
+    searchInput.addEventListener("input", (event) => {
+      const searchTerm = event.target.value.toLowerCase(); // Get the search term
+
+      // Filter data based on country name, capital, country code, or phone code
+      const filteredData = countriesData.filter((country) => {
+        const countryName = country.name.common.toLowerCase();
+        const capital = country.capital ? country.capital[0].toLowerCase() : "";
+        const countryCode = country.cca2.toLowerCase();
+        const phoneCode = getPhoneCode(country.idd).toLowerCase();
+
+        return (
+          countryName.includes(searchTerm) ||
+          capital.includes(searchTerm) ||
+          countryCode.includes(searchTerm) ||
+          phoneCode.includes(searchTerm)
+        );
+      });
+
+      populateTable(filteredData); // Update the table with filtered data
+    });
+  </script>
+</body>
+</html>
