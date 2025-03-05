@@ -113,6 +113,14 @@
     .country-item .info .phone-code {
       color: #dc3545;
     }
+
+    .country-item .info .population {
+      color: #ff5722;
+    }
+
+    .country-item .info .currency {
+      color: #9c27b0;
+    }
   </style>
 </head>
 <body>
@@ -176,6 +184,8 @@
               <span class="capital">Capital: ${country.capital ? country.capital[0] : "N/A"}</span>
               <span class="country-code">Code: ${country.cca2}</span>
               <span class="phone-code">Phone: ${getPhoneCode(country.idd)}</span>
+              <span class="population">Population: ${formatPopulation(country.population)}</span>
+              <span class="currency">Currency: ${getCurrency(country.currencies)}</span>
             </div>
           </div>
         `;
@@ -189,6 +199,18 @@
       return `${idd.root}${idd.suffixes ? idd.suffixes[0] : ""}`;
     }
 
+    // Function to format population with commas
+    function formatPopulation(population) {
+      return population ? population.toLocaleString() : "N/A";
+    }
+
+    // Function to get currency information
+    function getCurrency(currencies) {
+      if (!currencies) return "N/A";
+      const currency = Object.values(currencies)[0];
+      return `${currency.name} (${currency.symbol})`;
+    }
+
     // Add event listener for search input
     searchInput.addEventListener("input", (event) => {
       const searchTerm = event.target.value.toLowerCase(); // Get the search term
@@ -199,12 +221,16 @@
         const capital = country.capital ? country.capital[0].toLowerCase() : "";
         const countryCode = country.cca2.toLowerCase();
         const phoneCode = getPhoneCode(country.idd).toLowerCase();
+        const population = country.population ? country.population.toString() : "";
+        const currency = getCurrency(country.currencies).toLowerCase();
 
         return (
           countryName.includes(searchTerm) ||
           capital.includes(searchTerm) ||
           countryCode.includes(searchTerm) ||
-          phoneCode.includes(searchTerm)
+          phoneCode.includes(searchTerm) ||
+          population.includes(searchTerm) ||
+          currency.includes(searchTerm)
         );
       });
 
