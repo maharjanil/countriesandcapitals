@@ -80,6 +80,18 @@
       font-size: 20px;
     }
 
+    .continent-header .continent-stats {
+      display: flex;
+      gap: 15px;
+      font-size: 14px;
+    }
+
+    .continent-header .continent-stats span {
+      background-color: rgba(255, 255, 255, 0.2);
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
     .continent-header .toggle-icon {
       font-size: 18px;
       transition: transform 0.3s ease;
@@ -161,6 +173,10 @@
       color: #ff5722;
     }
 
+    .country-item .info .area {
+      color: #17a2b8;
+    }
+
     .country-item .info .currency {
       color: #9c27b0;
     }
@@ -192,6 +208,11 @@
       .country-item .flag {
         margin-right: 0;
         margin-bottom: 10px;
+      }
+
+      .continent-header .continent-stats {
+        flex-direction: column;
+        gap: 5px;
       }
     }
   </style>
@@ -238,7 +259,7 @@
         // Store the sorted data
         countriesData = data;
 
-        // Group countries by continent
+        // Group countries by continent and calculate total area
         const groupedData = groupByContinent(countriesData);
 
         // Populate the continents container
@@ -246,15 +267,19 @@
       })
       .catch((error) => console.error("Error fetching data:", error));
 
-    // Function to group countries by continent
+    // Function to group countries by continent and calculate total area
     function groupByContinent(data) {
       const grouped = {};
       data.forEach((country) => {
         const continent = country.region || "Other";
         if (!grouped[continent]) {
-          grouped[continent] = [];
+          grouped[continent] = {
+            countries: [],
+            totalArea: 0
+          };
         }
-        grouped[continent].push(country);
+        grouped[continent].countries.push(country);
+        grouped[continent].totalArea += country.area || 0;
       });
       return grouped;
     }
@@ -263,11 +288,16 @@
     function populateContinents(groupedData) {
       continentsContainer.innerHTML = ""; // Clear the container
       Object.keys(groupedData).forEach((continent) => {
+        const continentData = groupedData[continent];
         const continentSection = document.createElement("div");
         continentSection.className = "continent-section";
         continentSection.innerHTML = `
           <div class="continent-header">
             <h3>${continent}</h3>
+            <div class="continent-stats">
+              <span>Countries: ${continentData.countries.length}</span>
+              <span>Total Area: ${formatArea(continentData.totalArea)} km²</span>
+            </div>
             <span class="toggle-icon"><i class="fas fa-chevron-down"></i></span>
           </div>
           <ul class="country-list">
@@ -275,7 +305,7 @@
           </ul>
         `;
         const countryList = continentSection.querySelector(".country-list");
-        groupedData[continent].forEach((country, index) => {
+        continentData.countries.forEach((country, index) => {
           const listItem = document.createElement("li");
           listItem.className = "country-item";
           listItem.innerHTML = `
@@ -288,6 +318,7 @@
                 <span class="country-code">Code: ${country.cca2}</span>
                 <span class="phone-code">Phone: ${getPhoneCode(country.idd)}</span>
                 <span class="population">Population: ${formatPopulation(country.population)}</span>
+                <span class="area">Area: ${formatArea(country.area)} km²</span>
                 <span class="currency">Currency: ${getCurrency(country.currencies)}</span>
               </div>
             </div>
@@ -322,11 +353,17 @@
       return population.toLocaleString();
     }
 
+    // Function to format area with commas
+    function formatArea(area) {
+      if (!area) return "N/A";
+      return area.toLocaleString();
+    }
+
     // Function to get currency information
     function getCurrency(currencies) {
       if (!currencies) return "N/A";
       const currency = Object.values(currencies)[0];
-      return `${currency.name} (${currency.symbol})`;
+      return `${currency.name} (${currency.symbol || "—"})`;
     }
 
     // Add event listener for search input
@@ -340,6 +377,7 @@
         const countryCode = country.cca2.toLowerCase();
         const phoneCode = getPhoneCode(country.idd).toLowerCase();
         const population = formatPopulation(country.population).toLowerCase();
+        const area = formatArea(country.area).toLowerCase();
         const currency = getCurrency(country.currencies).toLowerCase();
 
         return (
@@ -348,6 +386,7 @@
           countryCode.includes(searchTerm) ||
           phoneCode.includes(searchTerm) ||
           population.includes(searchTerm) ||
+          area.includes(searchTerm) ||
           currency.includes(searchTerm)
         );
       });
